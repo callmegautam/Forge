@@ -1,0 +1,24 @@
+{
+  "name": "@forge/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@forge/db": "workspace:*",
+    "@forge/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@forge/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

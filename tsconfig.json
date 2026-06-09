@@ -1,0 +1,3 @@
+{
+  "extends": "@forge/config/tsconfig.base.json"
+}
