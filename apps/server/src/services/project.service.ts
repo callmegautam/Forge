@@ -1,8 +1,16 @@
 import { db } from "@forge/db";
 import { project } from "@forge/db/schema/project";
 import { domain } from "@forge/db/schema/domains";
-import { extractRepoName } from "../helpers/domain.helper";
-import { findUniqueDomain } from "../db/projects.db";
+import { extractRepoName } from "../utils/domain.util";
+import {
+  findProjectByRepoUrl,
+  findProjectById,
+  findProjectsByUserId,
+  updateProjectById,
+  deleteProjectById,
+} from "../db/projects.db";
+import { findUniqueDomain } from "../db/domain.db";
+import { AppError } from "../utils/errors";
 
 export async function createProject(
   userId: string,
@@ -12,6 +20,11 @@ export async function createProject(
     framework?: string;
   },
 ) {
+  const existing = await findProjectByRepoUrl(input.repoUrl);
+  if (existing) {
+    throw new AppError("Repository already exists", 409);
+  }
+
   const name = extractRepoName(input.repoUrl);
   const baseSlug = extractRepoName(input.repoUrl);
   const uniqueDomain = await findUniqueDomain(baseSlug);
@@ -30,7 +43,7 @@ export async function createProject(
       .returning();
 
     if (!newProject) {
-      throw new Error("Failed to create project");
+      throw new AppError("Failed to create project", 500);
     }
 
     const [newDomain] = await tx
@@ -45,9 +58,67 @@ export async function createProject(
       .returning();
 
     if (!newDomain) {
-      throw new Error("Failed to create domain");
+      throw new AppError("Failed to create domain", 500);
     }
 
     return { project: newProject, domain: newDomain };
   });
+}
+
+export async function getProject(id: string, userId: string) {
+  const result = await findProjectById(id);
+  if (!result) {
+    throw new AppError("Project not found", 404);
+  }
+  if (result.userId !== userId) {
+    throw new AppError("Forbidden", 403);
+  }
+  return result;
+}
+
+export async function listUserProjects(userId: string) {
+  return findProjectsByUserId(userId);
+}
+
+export async function updateProject(
+  id: string,
+  userId: string,
+  data: {
+    name?: string;
+    repoUrl?: string;
+    branch?: string;
+    framework?: string;
+    status?: "active" | "inactive" | "archived";
+  },
+) {
+  const existing = await findProjectById(id);
+  if (!existing) {
+    throw new AppError("Project not found", 404);
+  }
+  if (existing.userId !== userId) {
+    throw new AppError("Forbidden", 403);
+  }
+
+  if (data.repoUrl) {
+    const duplicate = await findProjectByRepoUrl(data.repoUrl);
+    if (duplicate && duplicate.id !== id) {
+      throw new AppError("Repository URL already in use", 409);
+    }
+  }
+
+  const updated = await updateProjectById(id, data);
+  return updated;
+}
+
+export async function deleteProject(id: string, userId: string) {
+  const existing = await findProjectById(id);
+  if (!existing) {
+    throw new AppError("Project not found", 404);
+  }
+  if (existing.userId !== userId) {
+    throw new AppError("Forbidden", 403);
+  }
+
+  const deleted = await deleteProjectById(id);
+  return deleted;
 }

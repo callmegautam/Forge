@@ -1,3 +1,4 @@
+import { unauthorized } from "../utils/response";
 import { auth } from "@forge/auth";
 import type { Request, Response, NextFunction } from "express";
 
@@ -19,7 +20,8 @@ export async function requireAuth(
   });
 
   if (!session) {
-    res.status(401).json({ error: "Unauthorized" });
+    unauthorized(res);
+
     return;
   }
 

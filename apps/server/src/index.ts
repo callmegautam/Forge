@@ -4,13 +4,13 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
 import projectRoutes from "./routes/projects";
+import { errorHandler } from "./middleware/error-handler";
 
 const app = express();
 
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
-    // methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
@@ -25,6 +25,8 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/projects", projectRoutes);
+
+app.use(errorHandler);
 
 app.listen(3000, () => {
   console.log("Server is running on http://localhost:3000");
