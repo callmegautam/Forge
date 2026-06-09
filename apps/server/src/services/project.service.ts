@@ -1,6 +1,7 @@
 import { db } from "@forge/db";
 import { project } from "@forge/db/schema/project";
 import { domain } from "@forge/db/schema/domains";
+import { deployment } from "@forge/db/schema/deployments";
 import { extractRepoName } from "../utils/domain.util";
 import {
   findProjectByRepoUrl,
@@ -61,7 +62,22 @@ export async function createProject(
       throw new AppError("Failed to create domain", 500);
     }
 
-    return { project: newProject, domain: newDomain };
+    const [newDeployment] = await tx
+      .insert(deployment)
+      .values({
+        id: crypto.randomUUID(),
+        projectId: newProject.id,
+        status: "queued",
+        branch: input.branch ?? "main",
+        triggeredBy: "manual",
+      })
+      .returning();
+
+    if (!newDeployment) {
+      throw new AppError("Failed to create deployment", 500);
+    }
+
+    return { project: newProject, domain: newDomain, deployment: newDeployment };
   });
 }
 

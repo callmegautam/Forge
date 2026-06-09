@@ -37,6 +37,8 @@ export const deployment = pgTable(
     triggeredBy: deploymentTriggerEnum("triggered_by").default("manual").notNull(),
     artifactPath: varchar("artifact_path", { length: 500 }),
     buildDuration: integer("build_duration"),
+    containerPort: integer("container_port"),
+    containerId: varchar("container_id", { length: 64 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

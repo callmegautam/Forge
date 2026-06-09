@@ -5,6 +5,7 @@ import cors from "cors";
 import express from "express";
 import projectRoutes from "./routes/projects";
 import { errorHandler } from "./middleware/error-handler";
+import { subdomainProxy } from "./proxy";
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/projects", projectRoutes);
+
+app.use(subdomainProxy);
 
 app.use(errorHandler);
 
