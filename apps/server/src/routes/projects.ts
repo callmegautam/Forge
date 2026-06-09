@@ -11,6 +11,7 @@ import {
 import {
   createDeploymentHandler,
   webhookDeploymentHandler,
+  getDeploymentHandler,
 } from "../controllers/deployment.controller";
 
 const router: Router = express.Router();
@@ -21,6 +22,7 @@ router.post("/", requireAuth, createProjectHandler);
 router.patch("/:id", requireAuth, updateProjectHandler);
 router.delete("/:id", requireAuth, deleteProjectHandler);
 
+router.get("/:id/deployments/:deploymentId", requireAuth, getDeploymentHandler);
 router.post("/:id/deployments", requireAuth, createDeploymentHandler);
 router.post("/:id/deployments/trigger", requireAuth, webhookDeploymentHandler);
 

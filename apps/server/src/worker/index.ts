@@ -68,9 +68,9 @@ async function tick() {
     const deployments = await findQueuedDeployments();
     for (const dep of deployments) {
       const project = dep.project;
-      if (!project) continue;
+      if (!project || !project.repoUrl) continue;
 
-      processDeployment(dep.id, project.id, project.repoUrl!, project.branch);
+      await processDeployment(dep.id, project.id, project.repoUrl, project.branch);
     }
   } catch (error) {
     console.error("Worker tick failed:", error);

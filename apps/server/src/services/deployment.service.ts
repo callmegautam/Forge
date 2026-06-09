@@ -1,6 +1,7 @@
 import { db } from "@forge/db";
 import { deployment } from "@forge/db/schema/deployments";
 import { findProjectById } from "../db/projects.db";
+import { findDeploymentById } from "../db/deployments.db";
 import { AppError } from "../utils/errors";
 
 export async function redeployProject(
@@ -53,4 +54,21 @@ export async function webhookDeploy(
     .returning();
 
   return newDeployment;
+}
+
+export async function getDeployment(
+  userId: string,
+  projectId: string,
+  deploymentId: string,
+) {
+  const project = await findProjectById(projectId);
+  if (!project) throw new AppError("Project not found", 404);
+  if (project.userId !== userId) throw new AppError("Forbidden", 403);
+
+  const dep = await findDeploymentById(deploymentId);
+  if (!dep || dep.projectId !== projectId) {
+    throw new AppError("Deployment not found", 404);
+  }
+
+  return dep;
 }
