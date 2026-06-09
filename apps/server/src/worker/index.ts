@@ -1,4 +1,5 @@
 import { findQueuedDeployments, updateDeployment } from "../db/deployments.db";
+import { logStream } from "../utils/log-stream";
 import { detectFramework, generateDockerfile } from "./detector";
 import {
   cloneRepo,
@@ -13,24 +14,39 @@ import {
 
 const POLL_INTERVAL = 5_000;
 
-async function processDeployment(id: string, projectId: string, repoUrl: string, branch: string) {
+async function processDeployment(
+  id: string,
+  projectId: string,
+  repoUrl: string,
+  branch: string,
+) {
   try {
     await updateDeployment(id, { status: "building" });
 
-    await cloneRepo(repoUrl, projectId, branch);
+    logStream.emit(id, `Cloning ${repoUrl} (branch: ${branch})...\n`);
+    await cloneRepo(repoUrl, projectId, branch, id);
 
+    logStream.emit(id, "Reading package.json...\n");
     const pkg = readPackageJson(projectId);
     const config = detectFramework(pkg);
+    logStream.emit(id, `Detected framework: ${config.framework}\n`);
 
+    logStream.emit(id, "Generating Dockerfile...\n");
     const dockerfile = generateDockerfile(config);
     writeDockerfile(projectId, dockerfile);
+    logStream.emit(id, "Dockerfile generated\n");
 
-    await dockerBuild(projectId);
+    logStream.emit(id, "Building Docker image...\n");
+    await dockerBuild(projectId, id);
 
+    logStream.emit(id, "Allocating port...\n");
     const usedPorts = await getUsedPorts();
     const hostPort = findAvailablePort(usedPorts);
+    logStream.emit(id, `Starting container on port ${hostPort}...\n`);
 
-    const containerId = await dockerRun(projectId, hostPort, config.internalPort);
+    const containerId = await dockerRun(projectId, hostPort, config.internalPort, id);
+
+    logStream.emit(id, `Deployment live on port ${hostPort}\n`);
 
     await updateDeployment(id, {
       status: "live",
@@ -39,9 +55,10 @@ async function processDeployment(id: string, projectId: string, repoUrl: string,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error(`Deployment ${id} failed:`, message);
+    logStream.emit(id, `Failed: ${message}\n`);
     await updateDeployment(id, { status: "failed" });
   } finally {
+    logStream.end(id);
     await cleanupBuild(projectId);
   }
 }

@@ -6,6 +6,7 @@ import express from "express";
 import projectRoutes from "./routes/projects";
 import { errorHandler } from "./middleware/error-handler";
 import { subdomainProxy } from "./proxy";
+import { createSocketServer } from "./utils/socket";
 
 const app = express();
 
@@ -31,6 +32,8 @@ app.use(subdomainProxy);
 
 app.use(errorHandler);
 
-app.listen(3000, () => {
+const server = createSocketServer(app);
+
+server.listen(3000, () => {
   console.log("Server is running on http://localhost:3000");
 });

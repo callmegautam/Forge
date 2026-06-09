@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import { readFileSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { spawnWithLogs } from "./logs";
 
 const BUILD_DIR = "/tmp/forge-builds";
 
@@ -16,15 +17,23 @@ function containerName(projectId: string) {
   return `forge-${projectId}`;
 }
 
-export async function cloneRepo(repoUrl: string, projectId: string, branch: string): Promise<void> {
+export async function cloneRepo(
+  repoUrl: string,
+  projectId: string,
+  branch: string,
+  deploymentId: string,
+): Promise<void> {
   const dir = buildDir(projectId);
   if (existsSync(dir)) {
     rmSync(dir, { recursive: true, force: true });
   }
 
-  const result = await $`git clone --branch ${branch} --depth 1 ${repoUrl} ${dir}`.quiet();
-  if (result.exitCode !== 0) {
-    throw new Error(`Failed to clone repository: ${result.stderr.toString()}`);
+  const exitCode = await spawnWithLogs(deploymentId, [
+    "git", "clone", "--branch", branch, "--depth", "1", repoUrl, dir,
+  ]);
+
+  if (exitCode !== 0) {
+    throw new Error("Failed to clone repository");
   }
 }
 
@@ -37,13 +46,19 @@ export function writeDockerfile(projectId: string, content: string): void {
   writeFileSync(join(buildDir(projectId), "Dockerfile"), content);
 }
 
-export async function dockerBuild(projectId: string): Promise<void> {
+export async function dockerBuild(
+  projectId: string,
+  deploymentId: string,
+): Promise<void> {
   const dir = buildDir(projectId);
   const tag = imageTag(projectId);
 
-  const result = await $`docker build -t ${tag} ${dir}`.quiet();
-  if (result.exitCode !== 0) {
-    throw new Error(`Docker build failed: ${result.stderr.toString()}`);
+  const exitCode = await spawnWithLogs(deploymentId, [
+    "docker", "build", "-t", tag, dir,
+  ]);
+
+  if (exitCode !== 0) {
+    throw new Error("Docker build failed");
   }
 }
 
@@ -57,23 +72,27 @@ export async function dockerRun(
   projectId: string,
   hostPort: number,
   internalPort: number,
+  deploymentId: string,
 ): Promise<string> {
   const name = containerName(projectId);
   const tag = imageTag(projectId);
 
   await stopExistingContainer(projectId);
 
-  const result = await $`docker run -d \
-    --name ${name} \
-    -p ${hostPort}:${internalPort} \
-    --restart unless-stopped \
-    ${tag}`.quiet();
+  const exitCode = await spawnWithLogs(deploymentId, [
+    "docker", "run", "-d",
+    "--name", name,
+    "-p", `${hostPort}:${internalPort}`,
+    "--restart", "unless-stopped",
+    tag,
+  ]);
 
-  if (result.exitCode !== 0) {
-    throw new Error(`Docker run failed: ${result.stderr.toString()}`);
+  if (exitCode !== 0) {
+    throw new Error("Docker run failed");
   }
 
-  return result.stdout.toString().trim();
+  const inspect = await $`docker inspect ${name} --format '{{.Id}}'`.quiet();
+  return inspect.stdout.toString().trim();
 }
 
 export async function cleanupBuild(projectId: string): Promise<void> {
