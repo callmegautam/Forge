@@ -16,17 +16,22 @@ export function createSocketServer(app: Express): Server {
     },
   });
 
+  console.log("[socket] Socket.IO server created");
+
   io.use(async (socket, next) => {
     const headers = socket.handshake.headers as Record<string, string>;
     try {
       const session = await auth.api.getSession({ headers });
       if (!session?.user?.id) {
+        console.log("[socket] Auth failed for socket", socket.id);
         next(new Error("Unauthorized"));
         return;
       }
       (socket as any).userId = session.user.id;
+      console.log("[socket] Socket authenticated", socket.id, "user", session.user.id);
       next();
-    } catch {
+    } catch (err) {
+      console.error("[socket] Auth error", err);
       next(new Error("Unauthorized"));
     }
   });
@@ -35,6 +40,13 @@ export function createSocketServer(app: Express): Server {
     const userId = (socket as any).userId as string;
     const projectId = socket.handshake.query.projectId as string | undefined;
     const deploymentId = socket.handshake.query.deploymentId as string | undefined;
+
+    console.log(
+      "[socket] Connected", socket.id,
+      "user", userId,
+      "project", projectId,
+      "deployment", deploymentId,
+    );
 
     if (!projectId || !deploymentId) {
       socket.emit("error", "Missing projectId or deploymentId");
@@ -56,12 +68,14 @@ export function createSocketServer(app: Express): Server {
     }
 
     socket.join(`deployment:${deploymentId}`);
+    console.log("[socket] Subscribed to deployment", deploymentId);
 
     const unsubscribe = logStream.subscribe(deploymentId, (chunk) => {
       socket.emit("log", chunk);
     });
 
     socket.on("disconnect", () => {
+      console.log("[socket] Disconnected", socket.id);
       unsubscribe();
     });
   });

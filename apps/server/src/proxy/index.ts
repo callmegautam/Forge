@@ -33,6 +33,7 @@ export async function subdomainProxy(
     });
 
     if (!record?.project) {
+      console.log(`[proxy] No project for subdomain "${subdomain}"`);
       next();
       return;
     }
@@ -42,11 +43,13 @@ export async function subdomainProxy(
     );
 
     if (!liveDeployment?.containerPort) {
+      console.log(`[proxy] No live deployment for "${subdomain}"`);
       next();
       return;
     }
 
     const target = `http://localhost:${liveDeployment.containerPort}`;
+    console.log(`[proxy] ${subdomain}.localhost:3000 → ${target}${req.url}`);
 
     const response = await fetch(`${target}${req.url}`, {
       method: req.method,
@@ -66,16 +69,18 @@ export async function subdomainProxy(
     res.status(response.status);
     const text = await response.text();
     res.send(text);
-  } catch {
-    next();
+    console.log(`[proxy] ${response.status} ${req.url}`);
+  } catch (err) {
+    console.error(`[proxy] Error proxying "${subdomain}":`, err);
+    res.status(502).json({ error: "Container not available. Redeploy the project." });
   }
 }
 
 function extractSubdomain(host: string): string | null {
-  const parts = host.split(".");
-  const isLocalhost = parts.at(-1) === "localhost" || parts.at(-2) === "localhost";
-  if (parts.length >= 3 && isLocalhost) {
-    return parts.slice(0, -2).join(".");
+  const hostname = host.split(":")[0] ?? "";
+  const parts = hostname.split(".");
+  if (parts.length >= 2 && parts.at(-1) === "localhost") {
+    return parts.slice(0, -1).join(".");
   }
   return null;
 }

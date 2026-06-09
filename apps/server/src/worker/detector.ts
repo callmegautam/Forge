@@ -18,7 +18,7 @@ const FRAMEWORK_CONFIG: Record<Framework, DetectedFramework> = {
   },
   "react-vite": {
     framework: "react-vite",
-    internalPort: 80,
+    internalPort: 5173,
     buildCommand: "npm run build",
     startCommand: "",
     outputDir: "dist",
@@ -46,37 +46,41 @@ export function detectFramework(pkg: Record<string, unknown>): DetectedFramework
 }
 
 export function generateDockerfile(config: DetectedFramework): string {
+  if (config.framework === "react-vite") {
+    return [
+      "FROM node:20-alpine",
+      "WORKDIR /app",
+      "COPY package*.json ./",
+      "RUN npm install",
+      "COPY . .",
+      `EXPOSE ${config.internalPort}`,
+      `CMD ["npx", "vite", "--host", "0.0.0.0", "--port", "5173"]`,
+    ].join("\n");
+  }
+
   const lines: string[] = [];
 
   lines.push("FROM node:20-alpine AS builder");
   lines.push("WORKDIR /app");
   lines.push("COPY package*.json ./");
-  lines.push("RUN npm ci");
+  lines.push("RUN npm ci 2>/dev/null || npm install");
   lines.push("COPY . .");
 
   if (config.buildCommand) {
     lines.push(`RUN ${config.buildCommand}`);
   }
 
-  if (config.framework === "react-vite") {
-    lines.push("");
-    lines.push("FROM nginx:alpine");
-    lines.push("COPY --from=builder /app/dist /usr/share/nginx/html");
-    lines.push(`EXPOSE ${config.internalPort}`);
-    lines.push("CMD [\"nginx\", \"-g\", \"daemon off;\"]");
-  } else {
-    lines.push("");
-    lines.push("FROM node:20-alpine AS runner");
-    lines.push("WORKDIR /app");
-    if (config.framework === "nextjs") {
-      lines.push("COPY --from=builder /app/.next ./.next");
-      lines.push("COPY --from=builder /app/public ./public");
-    }
-    lines.push("COPY --from=builder /app/package.json ./package.json");
-    lines.push("COPY --from=builder /app/node_modules ./node_modules");
-    lines.push(`EXPOSE ${config.internalPort}`);
-    lines.push(`CMD [${config.startCommand.split(" ").map(s => `"${s}"`).join(", ")}]`);
+  lines.push("");
+  lines.push("FROM node:20-alpine AS runner");
+  lines.push("WORKDIR /app");
+  if (config.framework === "nextjs") {
+    lines.push("COPY --from=builder /app/.next ./.next");
+    lines.push("COPY --from=builder /app/public ./public");
   }
+  lines.push("COPY --from=builder /app/package.json ./package.json");
+  lines.push("COPY --from=builder /app/node_modules ./node_modules");
+  lines.push(`EXPOSE ${config.internalPort}`);
+  lines.push(`CMD [${config.startCommand.split(" ").map(s => `"${s}"`).join(", ")}]`);
 
   return lines.join("\n");
 }

@@ -6,6 +6,7 @@ export async function spawnWithLogs(
   cmd: string[],
   options?: Record<string, unknown>,
 ): Promise<number> {
+  console.log(`[spawn] ${cmd.join(" ")}`);
   const proc = Bun.spawn(cmd, {
     ...options,
     stdout: "pipe",
@@ -21,11 +22,15 @@ export async function spawnWithLogs(
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      logStream.emit(deploymentId, decoder.decode(value));
+      const text = decoder.decode(value);
+      process.stdout.write(text);
+      logStream.emit(deploymentId, text);
     }
   }
 
   await Promise.all([readStream(proc.stdout), readStream(proc.stderr)]);
 
-  return await proc.exited;
+  const exitCode = await proc.exited;
+  console.log(`[spawn] exit code: ${exitCode}`);
+  return exitCode;
 }

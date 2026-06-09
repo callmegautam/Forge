@@ -68,12 +68,19 @@ export async function stopExistingContainer(projectId: string): Promise<void> {
   await $`docker rm ${name}`.nothrow().quiet();
 }
 
+export async function getHostPort(containerId: string, internalPort: number): Promise<number> {
+  const result = await $`docker port ${containerId} ${internalPort}/tcp`.quiet();
+  const output = result.stdout.toString().trim();
+  const match = output.match(/:(\d+)$/);
+  if (!match || !match[1]) throw new Error(`Could not determine host port for ${containerId}:${internalPort}`);
+  return parseInt(match[1], 10);
+}
+
 export async function dockerRun(
   projectId: string,
-  hostPort: number,
   internalPort: number,
   deploymentId: string,
-): Promise<string> {
+): Promise<{ containerId: string; containerPort: number }> {
   const name = containerName(projectId);
   const tag = imageTag(projectId);
 
@@ -82,7 +89,7 @@ export async function dockerRun(
   const exitCode = await spawnWithLogs(deploymentId, [
     "docker", "run", "-d",
     "--name", name,
-    "-p", `${hostPort}:${internalPort}`,
+    "-P",
     "--restart", "unless-stopped",
     tag,
   ]);
@@ -92,7 +99,10 @@ export async function dockerRun(
   }
 
   const inspect = await $`docker inspect ${name} --format '{{.Id}}'`.quiet();
-  return inspect.stdout.toString().trim();
+  const containerId = inspect.stdout.toString().trim();
+  const containerPort = await getHostPort(containerId, internalPort);
+
+  return { containerId, containerPort };
 }
 
 export async function cleanupBuild(projectId: string): Promise<void> {
@@ -100,31 +110,4 @@ export async function cleanupBuild(projectId: string): Promise<void> {
   if (existsSync(dir)) {
     rmSync(dir, { recursive: true, force: true });
   }
-}
-
-export async function getUsedPorts(): Promise<number[]> {
-  const result = await $`docker ps --format '{{json .}}'`.quiet();
-  if (result.exitCode !== 0) return [];
-
-  const ports: number[] = [];
-  const output = result.stdout.toString().trim();
-  for (const line of output.split("\n")) {
-    try {
-      const container = JSON.parse(line);
-      const portBindings = container.Ports as Array<{ PublicPort?: number }>;
-      if (portBindings) {
-        for (const p of portBindings) {
-          if (p.PublicPort) ports.push(p.PublicPort);
-        }
-      }
-    } catch { /* skip malformed lines */ }
-  }
-  return ports;
-}
-
-export function findAvailablePort(usedPorts: number[], start = 4000, end = 5000): number {
-  for (let port = start; port <= end; port++) {
-    if (!usedPorts.includes(port)) return port;
-  }
-  throw new Error("No available ports in range");
 }
