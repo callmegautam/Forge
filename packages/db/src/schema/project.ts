@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, text, timestamp, index } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { domain } from "./domains";
 import { deployment } from "./deployments";
@@ -13,7 +13,7 @@ export const projectStatusEnum = pgEnum("project_status", [
 export const project = pgTable(
   "project",
   {
-    id: text("id").primaryKey(),
+    id: uuid("id").primaryKey(),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
