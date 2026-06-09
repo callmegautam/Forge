@@ -1,39 +1,10 @@
 import { db } from "@forge/db";
 import { project } from "@forge/db/schema/project";
 import { domain } from "@forge/db/schema/domains";
-import { eq } from "drizzle-orm";
 import { extractRepoName } from "../helpers/domain.helper";
-import {
-  generateDomainSlug,
-  generateRandomSuffix,
-  makeUniqueDomainCandidate,
-} from "../helpers/domain.helper";
+import { findUniqueDomain } from "../db/projects.db";
 
-export async function repoExists(repoUrl: string): Promise<boolean> {
-  const existing = await db.query.project.findFirst({
-    where: eq(project.repoUrl, repoUrl),
-  });
-  return !!existing;
-}
-
-export async function domainExists(domainName: string): Promise<boolean> {
-  const existing = await db.query.domain.findFirst({
-    where: eq(domain.domain, domainName),
-  });
-  return !!existing;
-}
-
-export async function findUniqueDomain(baseSlug: string): Promise<string> {
-  let candidate = baseSlug;
-
-  while (await domainExists(candidate)) {
-    candidate = makeUniqueDomainCandidate(baseSlug, generateRandomSuffix());
-  }
-
-  return candidate;
-}
-
-export async function createProjectService(
+export async function createProject(
   userId: string,
   input: {
     repoUrl: string;
@@ -41,9 +12,11 @@ export async function createProjectService(
     framework?: string;
   },
 ) {
-  return db.transaction(async (tx) => {
-    const name = extractRepoName(input.repoUrl);
+  const name = extractRepoName(input.repoUrl);
+  const baseSlug = extractRepoName(input.repoUrl);
+  const uniqueDomain = await findUniqueDomain(baseSlug);
 
+  return db.transaction(async (tx) => {
     const [newProject] = await tx
       .insert(project)
       .values({
@@ -59,9 +32,6 @@ export async function createProjectService(
     if (!newProject) {
       throw new Error("Failed to create project");
     }
-
-    const baseSlug = generateDomainSlug(input.repoUrl);
-    const uniqueDomain = await findUniqueDomain(baseSlug);
 
     const [newDomain] = await tx
       .insert(domain)
