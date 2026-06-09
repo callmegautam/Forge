@@ -8,6 +8,10 @@ import {
   updateProjectHandler,
   deleteProjectHandler,
 } from "../controllers/project.controller";
+import {
+  createDeploymentHandler,
+  webhookDeploymentHandler,
+} from "../controllers/deployment.controller";
 
 const router: Router = express.Router();
 
@@ -16,5 +20,8 @@ router.get("/:id", requireAuth, getProjectHandler);
 router.post("/", requireAuth, createProjectHandler);
 router.patch("/:id", requireAuth, updateProjectHandler);
 router.delete("/:id", requireAuth, deleteProjectHandler);
+
+router.post("/:id/deployments", requireAuth, createDeploymentHandler);
+router.post("/:id/deployments/trigger", requireAuth, webhookDeploymentHandler);
 
 export default router;
