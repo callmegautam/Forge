@@ -33,7 +33,6 @@ export async function subdomainProxy(
     });
 
     if (!record?.project) {
-      console.log(`[proxy] No project for subdomain "${subdomain}"`);
       next();
       return;
     }
@@ -43,13 +42,11 @@ export async function subdomainProxy(
     );
 
     if (!liveDeployment?.containerPort) {
-      console.log(`[proxy] No live deployment for "${subdomain}"`);
       next();
       return;
     }
 
     const target = `http://localhost:${liveDeployment.containerPort}`;
-    console.log(`[proxy] ${subdomain}.localhost:3000 → ${target}${req.url}`);
 
     const response = await fetch(`${target}${req.url}`, {
       method: req.method,
@@ -69,9 +66,7 @@ export async function subdomainProxy(
     res.status(response.status);
     const text = await response.text();
     res.send(text);
-    console.log(`[proxy] ${response.status} ${req.url}`);
-  } catch (err) {
-    console.error(`[proxy] Error proxying "${subdomain}":`, err);
+  } catch (_err) {
     res.status(502).json({ error: "Container not available. Redeploy the project." });
   }
 }
