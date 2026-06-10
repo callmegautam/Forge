@@ -1,7 +1,5 @@
-import { db } from "@forge/db";
-import { deployment } from "@forge/db/schema/deployments";
 import { findProjectById } from "../db/projects.db";
-import { findDeploymentById } from "../db/deployments.db";
+import { findDeploymentById, createDeployment } from "../db/deployments.db";
 import { AppError } from "../utils/errors";
 
 export async function redeployProject(
@@ -13,18 +11,11 @@ export async function redeployProject(
   if (!project) throw new AppError("Project not found", 404);
   if (project.userId !== userId) throw new AppError("Forbidden", 403);
 
-  const [newDeployment] = await db
-    .insert(deployment)
-    .values({
-      id: crypto.randomUUID(),
-      projectId,
-      status: "queued",
-      branch: branch ?? project.branch,
-      triggeredBy: "manual",
-    })
-    .returning();
-
-  return newDeployment;
+  return createDeployment({
+    projectId,
+    branch: branch ?? project.branch,
+    triggeredBy: "manual",
+  });
 }
 
 export async function webhookDeploy(
@@ -40,20 +31,13 @@ export async function webhookDeploy(
   if (!project) throw new AppError("Project not found", 404);
   if (project.userId !== userId) throw new AppError("Forbidden", 403);
 
-  const [newDeployment] = await db
-    .insert(deployment)
-    .values({
-      id: crypto.randomUUID(),
-      projectId,
-      status: "queued",
-      branch: data.branch ?? project.branch,
-      commitHash: data.commitHash ?? null,
-      commitMessage: data.commitMessage ?? null,
-      triggeredBy: "webhook",
-    })
-    .returning();
-
-  return newDeployment;
+  return createDeployment({
+    projectId,
+    branch: data.branch ?? project.branch,
+    triggeredBy: "webhook",
+    commitHash: data.commitHash,
+    commitMessage: data.commitMessage,
+  });
 }
 
 export async function getDeployment(

@@ -26,6 +26,8 @@
     "check-types": "turbo check-types",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
+    "dev:worker": "turbo -F worker dev",
+    "worker": "turbo -F worker start",
     "db:push": "turbo -F @forge/db db:push",
     "db:studio": "turbo -F @forge/db db:studio",
     "db:generate": "turbo -F @forge/db db:generate",

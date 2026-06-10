@@ -7,12 +7,12 @@
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "bun run --hot src/index.ts",
-    "worker": "bun run src/worker/runner.ts",
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
     "@forge/auth": "workspace:*",
     "@forge/db": "workspace:*",
+    "@forge/deployment": "workspace:*",
     "@forge/env": "workspace:*",
     "better-auth": "catalog:",
     "cors": "^2.8.5",

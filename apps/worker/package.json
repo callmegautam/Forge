@@ -1,0 +1,21 @@
+{
+  "name": "worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --hot src/runner.ts",
+    "start": "bun run src/runner.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@forge/db": "workspace:*",
+    "@forge/deployment": "workspace:*",
+    "@forge/env": "workspace:*",
+    "drizzle-orm": "^0.45.1"
+  },
+  "devDependencies": {
+    "@forge/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

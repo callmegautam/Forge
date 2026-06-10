@@ -4,7 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { auth } from "@forge/auth";
 import { env } from "@forge/env/server";
 import { findProjectById } from "../db/projects.db";
-import { logStream } from "./log-stream";
+import { logStream } from "@forge/deployment";
 
 export function createSocketServer(app: Express): Server {
   const server = createServer(app);

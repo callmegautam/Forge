@@ -1,7 +1,7 @@
-import { findQueuedDeployments, updateDeployment } from "../db/deployments.db";
-import { updateProjectById } from "../db/projects.db";
-import { logStream } from "../utils/log-stream";
-import { detectFramework, generateDockerfile } from "./detector";
+import { findQueuedDeployments, updateDeployment } from "./db";
+import { updateProjectById } from "./db";
+import { logStream } from "@forge/deployment";
+import { detectFramework, generateDockerfile } from "@forge/deployment/detector";
 import {
   cloneRepo,
   readPackageJson,
@@ -9,7 +9,7 @@ import {
   dockerBuild,
   dockerRun,
   cleanupBuild,
-} from "./docker";
+} from "@forge/deployment/docker";
 
 const POLL_INTERVAL = 5_000;
 
@@ -21,20 +21,14 @@ async function processDeployment(
 ) {
   try {
     await updateDeployment(id, { status: "building" });
-
     await cloneRepo(repoUrl, projectId, branch, id);
-
     const pkg = readPackageJson(projectId);
     const config = detectFramework(pkg);
     await updateProjectById(projectId, { framework: config.framework });
-
     const dockerfile = generateDockerfile(config);
     writeDockerfile(projectId, dockerfile);
-
     await dockerBuild(projectId, id);
-
     const { containerId, containerPort } = await dockerRun(projectId, config.internalPort, id);
-
     await updateDeployment(id, {
       status: "live",
       containerId,
@@ -54,16 +48,13 @@ async function tick() {
     for (const dep of deployments) {
       const project = dep.project;
       if (!project || !project.repoUrl) continue;
-
       await processDeployment(dep.id, project.id, project.repoUrl, project.branch);
     }
-  } catch (_error) {
-  }
+  } catch (_error) {}
 }
 
 export function startWorker() {
   let running = false;
-
   async function loop() {
     if (running) return;
     running = true;
@@ -75,6 +66,5 @@ export function startWorker() {
       setTimeout(loop, POLL_INTERVAL);
     }
   }
-
   loop();
 }

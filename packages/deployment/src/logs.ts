@@ -1,5 +1,5 @@
 import type { Subprocess } from "bun";
-import { logStream } from "../utils/log-stream";
+import { logStream } from "./log-stream";
 
 export async function spawnWithLogs(
   deploymentId: string,
@@ -14,9 +14,7 @@ export async function spawnWithLogs(
 
   const decoder = new TextDecoder();
 
-  async function readStream(
-    stream: ReadableStream<Uint8Array>,
-  ): Promise<void> {
+  async function readStream(stream: ReadableStream<Uint8Array>): Promise<void> {
     const reader = stream.getReader();
     while (true) {
       const { done, value } = await reader.read();
@@ -26,6 +24,5 @@ export async function spawnWithLogs(
   }
 
   await Promise.all([readStream(proc.stdout), readStream(proc.stderr)]);
-
   return await proc.exited;
 }

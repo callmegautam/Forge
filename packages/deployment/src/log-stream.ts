@@ -9,23 +9,15 @@ class LogStream {
     }
     this.listeners.get(deploymentId)!.add(callback);
     return () => {
-      const set = this.listeners.get(deploymentId);
-      if (set) {
-        set.delete(callback);
-        if (set.size === 0) this.listeners.delete(deploymentId);
-      }
+      this.listeners.get(deploymentId)?.delete(callback);
     };
   }
 
   emit(deploymentId: string, chunk: string) {
-    const callbacks = this.listeners.get(deploymentId);
-    if (callbacks) {
-      for (const cb of callbacks) cb(chunk);
-    }
+    this.listeners.get(deploymentId)?.forEach((cb) => cb(chunk));
   }
 
   end(deploymentId: string) {
-    this.emit(deploymentId, "[done]");
     this.listeners.delete(deploymentId);
   }
 }

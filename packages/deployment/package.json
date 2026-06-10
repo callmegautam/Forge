@@ -1,0 +1,14 @@
+{
+  "name": "@forge/deployment",
+  "type": "module",
+  "exports": {
+    ".": { "default": "./src/index.ts" },
+    "./*": { "default": "./src/*.ts" }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@forge/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

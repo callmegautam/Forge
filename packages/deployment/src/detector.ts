@@ -37,11 +37,9 @@ export function detectFramework(pkg: Record<string, unknown>): DetectedFramework
     ...(pkg.dependencies as Record<string, string> || {}),
     ...(pkg.devDependencies as Record<string, string> || {}),
   };
-
   if (deps.next) return FRAMEWORK_CONFIG.nextjs;
   if (deps.vite) return FRAMEWORK_CONFIG["react-vite"];
   if (deps.express) return FRAMEWORK_CONFIG.express;
-
   return FRAMEWORK_CONFIG.express;
 }
 
@@ -57,19 +55,15 @@ export function generateDockerfile(config: DetectedFramework): string {
       `CMD ["npx", "vite", "--host", "0.0.0.0", "--port", "5173"]`,
     ].join("\n");
   }
-
   const lines: string[] = [];
-
   lines.push("FROM node:20-alpine AS builder");
   lines.push("WORKDIR /app");
   lines.push("COPY package*.json ./");
   lines.push("RUN npm ci 2>/dev/null || npm install");
   lines.push("COPY . .");
-
   if (config.buildCommand) {
     lines.push(`RUN ${config.buildCommand}`);
   }
-
   lines.push("");
   lines.push("FROM node:20-alpine AS runner");
   lines.push("WORKDIR /app");
@@ -81,6 +75,5 @@ export function generateDockerfile(config: DetectedFramework): string {
   lines.push("COPY --from=builder /app/node_modules ./node_modules");
   lines.push(`EXPOSE ${config.internalPort}`);
   lines.push(`CMD [${config.startCommand.split(" ").map(s => `"${s}"`).join(", ")}]`);
-
   return lines.join("\n");
 }
