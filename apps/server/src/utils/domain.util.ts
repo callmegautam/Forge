@@ -2,7 +2,8 @@ export function extractRepoName(repoUrl: string): string {
   const url = new URL(repoUrl);
   const path = url.pathname.replace(/\.git$/, "").replace(/\/$/, "");
   const segments = path.split("/").filter(Boolean);
-  return segments[segments.length - 1] || "project";
+  const name = segments[segments.length - 1] || "project";
+  return name.toLowerCase();
 }
 
 export function sanitizeDomainLabel(name: string): string {
