@@ -10,6 +10,7 @@
   "dependencies": {
     "@forge/db": "workspace:*",
     "@forge/deployment": "workspace:*",
+    "@forge/queue": "workspace:*",
     "@forge/env": "workspace:*",
     "drizzle-orm": "^0.45.1"
   },

@@ -13,6 +13,7 @@
     "@forge/auth": "workspace:*",
     "@forge/db": "workspace:*",
     "@forge/deployment": "workspace:*",
+    "@forge/queue": "workspace:*",
     "@forge/env": "workspace:*",
     "better-auth": "catalog:",
     "cors": "^2.8.5",

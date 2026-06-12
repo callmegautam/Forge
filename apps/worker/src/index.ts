@@ -1,4 +1,4 @@
-import { findQueuedDeployments, updateDeployment } from "./db";
+import { updateDeployment } from "./db";
 import { updateProjectById } from "./db";
 import { logStream } from "@forge/deployment";
 import { detectFramework, generateDockerfile } from "@forge/deployment/detector";
@@ -10,8 +10,7 @@ import {
   dockerRun,
   cleanupBuild,
 } from "@forge/deployment/docker";
-
-const POLL_INTERVAL = 5_000;
+import { createDeploymentWorker, type DeploymentJobResult } from "@forge/queue";
 
 async function processDeployment(
   id: string,
@@ -42,29 +41,22 @@ async function processDeployment(
   }
 }
 
-async function tick() {
-  try {
-    const deployments = await findQueuedDeployments();
-    for (const dep of deployments) {
-      const project = dep.project;
-      if (!project || !project.repoUrl) continue;
-      await processDeployment(dep.id, project.id, project.repoUrl, project.branch);
-    }
-  } catch (_error) {}
-}
-
 export function startWorker() {
-  let running = false;
-  async function loop() {
-    if (running) return;
-    running = true;
-    try {
-      await tick();
-    } catch (_err) {
-    } finally {
-      running = false;
-      setTimeout(loop, POLL_INTERVAL);
-    }
-  }
-  loop();
+  const worker = createDeploymentWorker(
+    async (job): Promise<DeploymentJobResult> => {
+      const { deploymentId, projectId, repoUrl, branch } = job.data;
+      await processDeployment(deploymentId, projectId, repoUrl, branch);
+      return { success: true };
+    },
+  );
+
+  worker.on("completed", (job) => {
+    console.log(`Deployment ${job.id} completed`);
+  });
+
+  worker.on("failed", (job, err) => {
+    console.error(`Deployment ${job?.id} failed:`, err.message);
+  });
+
+  console.log("Worker started, waiting for deployment jobs...");
 }

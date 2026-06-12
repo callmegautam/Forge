@@ -12,6 +12,7 @@ import {
 } from "../db/projects.db";
 import { findUniqueDomain } from "../db/domain.db";
 import { AppError } from "../utils/errors";
+import { deploymentQueue } from "@forge/queue";
 
 export async function createProject(
   userId: string,
@@ -30,7 +31,7 @@ export async function createProject(
   const baseSlug = extractRepoName(input.repoUrl);
   const uniqueDomain = await findUniqueDomain(baseSlug);
 
-  return db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const [newProject] = await tx
       .insert(project)
       .values({
@@ -79,6 +80,19 @@ export async function createProject(
 
     return { project: newProject, domain: newDomain, deployment: newDeployment };
   });
+
+  try {
+    await deploymentQueue.add("deploy", {
+      deploymentId: result.deployment.id,
+      projectId: result.project.id,
+      repoUrl: input.repoUrl,
+      branch: result.deployment.branch ?? input.branch ?? "main",
+    });
+  } catch (_error) {
+    console.error("Failed to enqueue deployment:", _error);
+  }
+
+  return result;
 }
 
 export async function getProject(id: string, userId: string) {

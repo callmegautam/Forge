@@ -1,0 +1,16 @@
+{
+  "name": "@forge/queue",
+  "type": "module",
+  "exports": {
+    ".": { "default": "./src/index.ts" },
+    "./*": { "default": "./src/*.ts" }
+  },
+  "dependencies": {
+    "bullmq": "^5.48.3"
+  },
+  "devDependencies": {
+    "@forge/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}
