@@ -1,3 +1,15 @@
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@forge/ui/components/dialog";
+import { Link } from "react-router";
+
 export function meta() {
   return [
     { title: "Forge — Dashboard" },
@@ -94,6 +106,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function Dashboard() {
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#edf5f6", fontFamily: "'JetBrains Mono', monospace" }}>
       {/* Top Bar */}
@@ -109,9 +123,9 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-4">
-          <a href="/" className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors">
+          <Link to="/" className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors">
             Home
-          </a>
+          </Link>
           <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-medium text-neutral-600">
             A
           </div>
@@ -126,11 +140,81 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-neutral-900">Projects</h1>
             <p className="text-sm text-neutral-500 mt-1">Manage and deploy your repositories</p>
           </div>
-          <button
-            className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-primary rounded-full hover:opacity-90 transition-opacity"
-          >
-            + New Project
-          </button>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger
+              render={
+                <button className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-primary rounded-full hover:opacity-90 transition-opacity" />
+              }
+            >
+              + New Project
+            </DialogTrigger>
+            <DialogContent
+              className="sm:max-w-md force-light"
+              style={{ borderRadius: "20px" }}
+            >
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold">Create New Project</DialogTitle>
+                <DialogDescription className="text-sm">
+                  Connect a GitHub repository to deploy it on your infrastructure.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex flex-col gap-4 py-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-neutral-700">Project Name</label>
+                  <input
+                    type="text"
+                    placeholder="my-project"
+                    className="w-full px-3 py-2.5 text-sm bg-white border border-neutral-200 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-neutral-700">Repository URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://github.com/owner/repo"
+                    className="w-full px-3 py-2.5 text-sm bg-white border border-neutral-200 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-neutral-700">Branch</label>
+                  <input
+                    type="text"
+                    placeholder="main"
+                    defaultValue="main"
+                    className="w-full px-3 py-2.5 text-sm bg-white border border-neutral-200 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-neutral-700">Framework</label>
+                  <select className="w-full px-3 py-2.5 text-sm bg-white border border-neutral-200 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 appearance-none">
+                    <option>Next.js</option>
+                    <option>Vite</option>
+                    <option>Astro</option>
+                    <option>Express</option>
+                    <option>React</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="px-4 py-2.5 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Create Project
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Project Grid */}

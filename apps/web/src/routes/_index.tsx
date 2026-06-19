@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 export function meta() {
   return [
     { title: "Forge — Deploy your apps" },
@@ -41,12 +43,13 @@ export default function Home() {
         </div>
 
         {/* Right CTA */}
-        <a
-          href="#"
-          className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-neutral-900 rounded-full hover:bg-neutral-800 transition-colors"
-        >
-          Get Started
-        </a>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white bg-neutral-900 rounded-full hover:bg-neutral-800 transition-colors"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            Get Started
+          </Link>
       </nav>
 
       {/* Hero Content */}
@@ -77,12 +80,13 @@ export default function Home() {
         </p>
 
         {/* Primary Button */}
-        <a
-          href="#"
-          className="relative z-10 inline-flex items-center justify-center px-7 py-3 mt-8 text-sm font-medium text-white bg-primary rounded-full"
+        <Link
+          to="/dashboard"
+          className="relative z-10 inline-flex items-center justify-center px-7 py-3 mt-8 text-sm font-medium text-white bg-primary rounded-full hover:opacity-90 transition-opacity"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           Start Deploying
-        </a>
+        </Link>
       </div>
 
       {/* Background Illustration */}
