@@ -1,5 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@forge/ui/components/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@forge/ui/components/dropdown-menu";
 
 export function meta() {
   return [
@@ -209,6 +224,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const [deployStatus, setDeployStatus] = useState(project?.deployStatus ?? "live");
   const [currentLogs, setCurrentLogs] = useState<string[]>(logs);
   const [isRedeploying, setIsRedeploying] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -282,11 +298,55 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
           <Link to="/dashboard" className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors">
             Dashboard
           </Link>
-          <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-medium text-neutral-600">
-            A
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-medium text-neutral-600 hover:bg-neutral-300 transition-colors cursor-pointer" />
+              }
+            >
+              A
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="force-light">
+              <DropdownMenuItem>
+                Logout
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+                Delete Account
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
+
+      {/* Delete Account Modal */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent
+          className="sm:max-w-md force-light"
+          style={{ borderRadius: "20px" }}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Delete Account</DialogTitle>
+            <DialogDescription className="text-sm">
+              This action is permanent and cannot be undone. All your projects and data will be removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              onClick={() => setDeleteOpen(false)}
+              className="px-4 py-2.5 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => setDeleteOpen(false)}
+              className="px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Delete Account
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Content */}
       <main className="flex-1 px-8 md:px-12 py-8 max-w-5xl mx-auto w-full">
