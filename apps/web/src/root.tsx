@@ -48,6 +48,7 @@ export default function App() {
       storageKey="vite-ui-theme"
     >
       <Toaster richColors />
+      <Outlet />
     </ThemeProvider>
   );
 }
