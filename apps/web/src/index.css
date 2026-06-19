@@ -1,1 +1,6 @@
 @import "@forge/ui/globals.css";
+
+body {
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+}

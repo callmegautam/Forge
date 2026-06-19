@@ -10,9 +10,7 @@ export function meta() {
 
 export default function Home() {
   return (
-    <div
-      className="flex flex-col w-screen h-screen bg-white border border-neutral-200 overflow-hidden"
-    >
+    <div className="flex flex-col w-screen h-screen bg-white border border-neutral-200 overflow-hidden">
       {/* Navigation */}
       <nav className="flex items-center justify-between px-8 md:px-12 py-5 shrink-0 z-10">
         {/* Logo */}
@@ -67,43 +65,42 @@ export default function Home() {
           className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-neutral-900 leading-[1.1] max-w-3xl"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
-          Deploy Any <span className="text-primary">GitHub Repository</span>
+          Turn <span className="text-primary">GitHub Repository</span>
           <br />
-          On Your Own Infrastructure
+          Into Live Applications
         </h1>
 
         {/* Description */}
-        <p className="mt-6 text-base md:text-lg text-neutral-800 leading-relaxed max-w-150">
-          Connect your GitHub repository, deploy with a single click, manage
-          custom domains, monitor deployments, and keep complete control of your
-          own infrastructure.
+        <p className="mt-6 text-sm text-neutral-800 leading-relaxed max-w-150">
+          Connect your GitHub repository and deploy in seconds. Manage custom
+          domains, monitor deployments, and ship updates with confidence.
         </p>
 
-          {/* Primary Button */}
-          <a
-            href="#"
-            className="relative z-10 inline-flex items-center justify-center px-7 py-3 mt-8 text-sm font-medium text-white bg-primary rounded-full"
-          >
-            Start Deploying
-          </a>
+        {/* Primary Button */}
+        <a
+          href="#"
+          className="relative z-10 inline-flex items-center justify-center px-7 py-3 mt-8 text-sm font-medium text-white bg-primary rounded-full"
+        >
+          Start Deploying
+        </a>
       </div>
 
-        {/* Background Illustration */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-full"
-          style={{
-            backgroundImage: "url(/bg.png)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            WebkitMaskImage:
-              "linear-gradient(to bottom, transparent 0%, transparent 5%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.85) 60%, white 75%)",
-            WebkitMaskSize: "100% 100%",
-            maskImage:
-              "linear-gradient(to bottom, transparent 0%, transparent 5%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.85) 60%, white 75%)",
-            maskSize: "100% 100%",
-          }}
-        />
+      {/* Background Illustration */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-full"
+        style={{
+          backgroundImage: "url(/bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 0%, transparent 5%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.85) 60%, white 75%)",
+          WebkitMaskSize: "100% 100%",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, transparent 5%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.85) 60%, white 75%)",
+          maskSize: "100% 100%",
+        }}
+      />
     </div>
   );
 }
