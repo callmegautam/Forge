@@ -220,9 +220,10 @@ export default function Dashboard() {
         {/* Project Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {demoProjects.map((project) => (
-            <div
+            <Link
               key={project.id}
-              className="bg-white border border-neutral-200 p-5 flex flex-col gap-4 hover:border-neutral-300 transition-colors cursor-pointer"
+              to={`/projects/${project.id}`}
+              className="bg-white border border-neutral-200 p-5 flex flex-col gap-4 hover:border-neutral-300 transition-colors"
               style={{ borderRadius: "16px" }}
             >
               {/* Top Row: Name + Status */}
@@ -272,7 +273,7 @@ export default function Dashboard() {
                   {project.commitMessage}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </main>
